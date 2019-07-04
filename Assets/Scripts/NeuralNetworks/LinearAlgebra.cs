@@ -102,6 +102,8 @@ namespace NN
             }
             return (column);
         }
+
+        // 添加一列
         public Matrix AddColumn(Matrix m2)
         {
             if (_matrix == null)
@@ -122,6 +124,27 @@ namespace NN
             }, X, Y);
             return (newMatrix);
         }
+
+        // 移除第 0 列
+        public Matrix RemoveColumn()
+        {
+            if (_matrix == null)
+                throw new ArgumentException("Matrix can not be null");
+
+            if (Y == 1)
+                throw new ArgumentException("Invalid dimensions");
+
+            double[,] newMatrix = new double[X, Y - 1];
+            double[,] m = _matrix;
+
+            MatrixLoop((i, j) =>
+            {
+                newMatrix[i, j ] = m[i, j+1];
+            }, X, Y-1);
+
+            return (newMatrix);
+        }
+
         public Matrix AddRow(Matrix m2)
         {
             if (_matrix == null)
@@ -156,6 +179,7 @@ namespace NN
             }
             return c;
         }
+
         //PREMADES
         public static Matrix Zeros(int x, int y)
         {
@@ -184,6 +208,15 @@ namespace NN
             }, x, x);
             return (identy);
         }
+
+        public void MakeZero()
+        {
+            var self = this;
+            MatrixLoop((i, j) => {
+                self._matrix[i, j] = 0.0;
+            }, X, Y);
+        }
+
         public static Matrix Random(int x, int y, Random r)
         {
             double[,] random = new double[x, y];

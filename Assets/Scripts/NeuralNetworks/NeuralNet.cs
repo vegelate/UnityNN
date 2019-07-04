@@ -13,7 +13,7 @@ namespace NN
         public Matrix[] W;  // 所有层的参数
 
         public Genoma GetGenoma { get { return new Genoma(W); } }
-        
+
         // ctor
         // NeuronCount - 每一层维度的数组
         public Perceptron(Random r, int[] NeuronCount, ActivationFunction activationFunction)
@@ -26,7 +26,7 @@ namespace NN
                 int iNumRow = NeuronCount[i] + 1;
                 int iNumCol = NeuronCount[i + 1];
 
-                UnityEngine.Debug.Log("["+i+"] "+ iNumRow + " x " + iNumCol);
+                UnityEngine.Debug.Log("[" + i + "] " + iNumRow + " x " + iNumCol);
 
                 W[i] = Matrix.Random(iNumRow, iNumCol, r) * 2 - 1;
             }
@@ -37,7 +37,7 @@ namespace NN
             this.activationFunction = activationFunction;
             W = genoma.W;
         }
-        
+
         // 前向传播
         public Matrix ForwardPropagation(Matrix InputValue)
         {
@@ -54,7 +54,7 @@ namespace NN
                 A[i] = Activation(Z[i]);
             }
             var a = Z[Z.Length - 1];
-            return a.Slice(0,1,a.X, a.Y);;
+            return a.Slice(0, 1, a.X, a.Y); ;
         }
 
         // 代价函数 y - 真实值，h - 预测值
@@ -64,8 +64,23 @@ namespace NN
         }
 
         // 反向传播
-        public void BackPropagation(Matrix m)
+        public void BackPropagation(Matrix y, Matrix h)
         {
+            // 每层 a 的误差值
+            var delta = new Matrix[LayerCount];
+
+            delta[LayerCount - 1] = h - y;   // 最后一层
+
+            // 计算 Delta
+            for (int iLayer = W.Length - 1; iLayer > 0; iLayer--)   // delta0 是输入层，不用计算
+            {
+                delta[iLayer] = (delta[iLayer + 1] * W[iLayer].T).RemoveColumn();
+                UnityEngine.Debug.Log("delta[" + iLayer + "] " + delta[iLayer].X + ", " + delta[iLayer].Y);
+            }
+
+            for (int i = 1; i < delta.Length; i++)
+                UnityEngine.Debug.Log("delta:" + i + "\n" + delta[i]);
+
 
         }
 
@@ -123,7 +138,7 @@ namespace NN
             for (int layer = 0; layer < parent1.W.Length; layer++)
             {
                 double[,] w = new double[parent1.W[layer].X, parent1.W[layer].Y];
-                Matrix.MatrixLoop((i, j) => 
+                Matrix.MatrixLoop((i, j) =>
                 {
                     if (r.NextDouble() > 0.5)
                     {
@@ -139,7 +154,7 @@ namespace NN
 
             return new Genoma(SonW);
         }
-        public static Genoma Mutate(Random r, Genoma gen, 
+        public static Genoma Mutate(Random r, Genoma gen,
             float mutationRate, float maxPerturbation)
         {
             for (int layer = 0; layer < gen.W.Length; layer++)
@@ -149,7 +164,7 @@ namespace NN
                 {
                     if (r.NextDouble() < mutationRate)
                     {
-                        m[i,j] += (r.NextDouble() * 2f - 1f) * maxPerturbation;
+                        m[i, j] += (r.NextDouble() * 2f - 1f) * maxPerturbation;
                     }
                 }, gen.W[layer].X, gen.W[layer].Y);
                 gen.W[layer] = m;
