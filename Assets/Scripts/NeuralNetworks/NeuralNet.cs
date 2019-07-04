@@ -1,19 +1,21 @@
 ﻿using System;
-using LinearAlgebra;
 
-namespace EvolutionaryPerceptron.MendelMachine
+namespace NN
 {
     public enum ActivationFunction { ReLU, Sigmoid }
 
+    // 感知器
     [Serializable]
     public struct Perceptron
     {
         ActivationFunction activationFunction;
         public int LayerCount { get { return W.Length + 1; } }
-        public Matrix[] W;
+        public Matrix[] W;  // 所有层的参数
 
         public Genoma GetGenoma { get { return new Genoma(W); } }
-
+        
+        // ctor
+        // NeuronCount - 每一层维度的数组
         public Perceptron(Random r, int[] NeuronCount, ActivationFunction activationFunction)
         {
             this.activationFunction = activationFunction;
@@ -21,31 +23,50 @@ namespace EvolutionaryPerceptron.MendelMachine
             W = new Matrix[NeuronCount.Length - 1];
             for (int i = 0; i < W.Length; i++)
             {
-                W[i] = Matrix.Random(NeuronCount[i] + 1, NeuronCount[i + 1], r) * 2 - 1;
+                int iNumRow = NeuronCount[i] + 1;
+                int iNumCol = NeuronCount[i + 1];
+
+                UnityEngine.Debug.Log("["+i+"] "+ iNumRow + " x " + iNumCol);
+
+                W[i] = Matrix.Random(iNumRow, iNumCol, r) * 2 - 1;
             }
         }
+
         public Perceptron(Genoma genoma, ActivationFunction activationFunction)
         {
             this.activationFunction = activationFunction;
             W = genoma.W;
         }
         
+        // 前向传播
         public Matrix ForwardPropagation(Matrix InputValue)
         {
-            int ExampleCount = InputValue.X;
+            int m = InputValue.X;    // num of examples, rows
             var Z = new Matrix[LayerCount];
             var A = new Matrix[LayerCount];
 
-            Z[0] = InputValue.AddColumn(Matrix.Ones(ExampleCount, 1));
+            Z[0] = InputValue.AddColumn(Matrix.Ones(m, 1)); // add bias
             A[0] = Z[0];
 
             for (int i = 1; i < LayerCount; i++)
             {
-                Z[i] = (A[i - 1] * W[i - 1]).AddColumn(Matrix.Ones(ExampleCount, 1));
+                Z[i] = (A[i - 1] * W[i - 1]).AddColumn(Matrix.Ones(m, 1));
                 A[i] = Activation(Z[i]);
             }
             var a = Z[Z.Length - 1];
             return a.Slice(0,1,a.X, a.Y);;
+        }
+
+        // 代价函数 y - 真实值，h - 预测值
+        public static Matrix Cost(Matrix y, Matrix h)
+        {
+            return ((y - h).Pow(2.0) * 0.5).Sumatory(AxisZero.horizontal);
+        }
+
+        // 反向传播
+        public void BackPropagation(Matrix m)
+        {
+
         }
 
         Matrix Activation(Matrix m)
@@ -86,6 +107,7 @@ namespace EvolutionaryPerceptron.MendelMachine
         }
     }
 
+    // 基因组
     [Serializable]
     public struct Genoma
     {

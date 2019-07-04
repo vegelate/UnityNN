@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
-using EvolutionaryPerceptron;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Runtime.Serialization;
-namespace EvolutionaryPerceptron.MendelMachine
+
+namespace NN
 {
     public enum DataManagement
     {

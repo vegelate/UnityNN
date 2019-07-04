@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System;
+using NN;
 
 public class TestManager : MonoBehaviour
 {
@@ -49,25 +50,83 @@ public class TestManager : MonoBehaviour
             if (bRst)
             {
                 iPassCount++;
-                Debug.Log("[" + i + "] " + tester.strName + "---------- [Pass]");
+                Debug.Log("<color=#00AA00ff> [" + i + "] " + tester.strName + "---------- [Pass]</color>");
             }
             else
             {
-                Debug.Log("[" + i + "] " + tester.strName + "---------- [Fail]");
+                Debug.Log("<color=#CC0000ff> [" + i + "] " + tester.strName + "---------- [Fail]</color>");
             }
+            yield return null;
         }
 
-        Debug.Log("测试完成，通过率 " + iPassCount + "/" + m_listTester.Count);
+        Debug.Log("<color=white>测试完成，通过率 " + iPassCount + "/" + m_listTester.Count + "</color>");
     }
 
     // 
     void _RegisterAllTester()
     {
         m_listTester.Add(new stTester("Matrix", _TestMatrix));
+        m_listTester.Add(new stTester("NN Foward", _TestNNFoward));
+        m_listTester.Add(new stTester("NN Back", _TestNNBackPropagation));
     }
 
     bool _TestMatrix()
     {
+        double[,] data1 = new double[5, 5];
+        double[,] data2 = new double[5, 5];
+        for (int x=0; x<5; x++)
+        {
+            for (int y=0; y<5; y++)
+            {
+                data1[x, y] = UnityEngine.Random.value;
+                data2[x, y] = UnityEngine.Random.value;
+            }
+        }
+
+        Matrix m1 = new Matrix(data1);
+        Matrix m2 = new Matrix(data2);
+
+        Matrix m3 = m1 + m2;
+
+        Debug.Log(m1 + " + \n" + m2 + " = \n" + m3);
+
+
+        return true;
+    }
+
+    bool _TestNNFoward()
+    {
+        System.Random r = new System.Random(1);
+
+        Perceptron p = 
+            new Perceptron(r, new int[] { 2, 4, 8 }, ActivationFunction.ReLU);
+
+        Matrix input = Matrix.Random(1, 2, r);
+
+        Matrix result = p.ForwardPropagation(input);
+
+        Debug.Log("Result:" + result );
+
+        return true;
+    }
+
+    // 反向传播
+    bool _TestNNBackPropagation()
+    {
+        System.Random r = new System.Random(1);
+        int m = 10; 
+        Perceptron p =
+            new Perceptron(r, new int[] { 10, 4, 8 }, ActivationFunction.ReLU);
+
+        Matrix x = Matrix.Random(m, 10, r);
+
+        Matrix y = Matrix.Random(m, 8, r);
+
+        Matrix h = p.ForwardPropagation(x);
+
+        Matrix cost = Perceptron.Cost(y, h);
+
+        Debug.Log("cost:\n" + cost);
 
         return true;
     }

@@ -1,4 +1,4 @@
-﻿namespace LinearAlgebra
+﻿namespace NN
 {
     public enum Axis
     {

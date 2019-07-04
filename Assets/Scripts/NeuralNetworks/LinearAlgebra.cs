@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LinearAlgebra
+namespace NN
 {
     [Serializable]
     public struct Matrix
@@ -253,10 +253,15 @@ namespace LinearAlgebra
         {
             return MatdoubleMult(m2, m1);
         }
+
+        // 矩阵乘法
         public static Matrix operator *(Matrix m1, Matrix m2)
         {
+            // 
+            /*
             if (m1.X == m2.X && m1.Y == m2.Y)
                 return DeltaMult(m1, m2);
+            */
             return MatMult(m1, m2);
         }
         public static Matrix operator /(Matrix m2, double m1)
@@ -276,6 +281,8 @@ namespace LinearAlgebra
 
             return (b);
         }
+
+        // 矩阵乘法
         public static Matrix MatMult(Matrix m1, Matrix m2)
         {
             if (m1.Y != m2.X)
@@ -298,6 +305,8 @@ namespace LinearAlgebra
             }, n, p);
             return (c);
         }
+
+        // 按位相乘
         public static Matrix DeltaMult(Matrix m1, Matrix m2)
         {
             if (m1.X != m2.X || m1.Y != m2.Y)
@@ -309,6 +318,7 @@ namespace LinearAlgebra
             }, m1.X, m2.Y);
             return (output);
         }
+
         //POW
         public static Matrix operator ^(Matrix m2, double m1)
         {
