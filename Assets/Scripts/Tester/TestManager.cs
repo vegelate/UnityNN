@@ -103,7 +103,8 @@ public class TestManager : MonoBehaviour
 
         Matrix input = Matrix.Random(1, 2, r);
 
-        Matrix result = p.ForwardPropagation(input);
+        Matrix[] A;
+        Matrix result = p.ForwardPropagation(input, out A);
 
         Debug.Log("Result:" + result );
 
@@ -114,17 +115,30 @@ public class TestManager : MonoBehaviour
     bool _TestNNBackPropagation()
     {
         System.Random r = new System.Random(1);
-        int m = 1; 
+        int m = 10; 
         Perceptron p =
-            new Perceptron(r, new int[] { 2, 4, 6, 8 }, ActivationFunction.ReLU);
+            new Perceptron(r, new int[] { 1, 8, 1 }, ActivationFunction.Sigmoid);
 
-        Matrix x = Matrix.Random(m, 2, r);
+        Matrix x = new Matrix(m, 1);
+        Matrix y = new Matrix(m, 1);
 
-        Matrix y = Matrix.Random(m, 8, r);
+        for (int i=0; i<m; i++)
+        {
+            x.SetValue(i, 0, (double)i / (m * 2));
+            y.SetValue(i, 0, (double)i / m);
+        }
 
-        Matrix h = p.ForwardPropagation(x);
+        Matrix[] A;
 
-        p.BackPropagation(y, h);
+        for (int i=0; i<100; i++)
+        {
+            Matrix h = p.ForwardPropagation(x, out A);
+            p.BackPropagation(y, h, in A, 0.05);
+
+                Debug.Log(h);
+
+        }
+
 
         return true;
     }

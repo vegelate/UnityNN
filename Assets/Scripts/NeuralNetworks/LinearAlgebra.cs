@@ -103,6 +103,18 @@ namespace NN
             return (column);
         }
 
+        public void SetColumn(int y, double value)
+        {
+            if (_matrix == null)
+                throw new ArgumentException("Matrix can not be null");
+
+            for (int i = 0; i < X; i++)
+            {
+                _matrix[i, y] = value;
+            }
+
+        }
+
         // 添加一列
         public Matrix AddColumn(Matrix m2)
         {
@@ -252,6 +264,7 @@ namespace NN
         {
             return MatdoubleSum(-m1, m2);
         }
+
         public static Matrix MatdoubleSum(double m1, Matrix m2)
         {
             double[,] a = m2;
@@ -297,6 +310,7 @@ namespace NN
             */
             return MatMult(m1, m2);
         }
+
         public static Matrix operator /(Matrix m2, double m1)
         {
             return MatdoubleMult(m2, 1 / m1);
