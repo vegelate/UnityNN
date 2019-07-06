@@ -32,6 +32,18 @@ namespace NN
         {
             _matrix = matrix;
         }
+        public Matrix(in Matrix m)
+        {
+            _matrix = new double[m.X, m.Y];
+            for (int y=0; y<m.Y; y++)
+            {
+                for (int x=0; x<m.X; x++)
+                {
+                    _matrix[x, y] = m.GetValue(x, y);
+                }
+            }
+        }
+
         //Setup
         public static implicit operator Matrix(double[,] matrix)
         {
@@ -112,7 +124,16 @@ namespace NN
             {
                 _matrix[i, y] = value;
             }
+        }
+        public void SetRow(int x, double value)
+        {
+            if (_matrix == null)
+                throw new ArgumentException("Matrix can not be null");
 
+            for (int i = 0; i < Y; i++)
+            {
+                _matrix[x, i] = value;
+            }
         }
 
         // 添加一列
@@ -237,6 +258,8 @@ namespace NN
             }, x, y);
             return (random);
         }
+
+
         //Operations
         //Transpose
         public static Matrix Transpose(Matrix m)

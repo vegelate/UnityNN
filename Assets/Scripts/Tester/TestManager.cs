@@ -115,27 +115,27 @@ public class TestManager : MonoBehaviour
     bool _TestNNBackPropagation()
     {
         System.Random r = new System.Random(1);
-        int m = 10; 
+        int m = 2; 
         Perceptron p =
-            new Perceptron(r, new int[] { 1, 8, 1 }, ActivationFunction.Sigmoid);
+            new Perceptron(r, new int[] { 1, 1, 1 }, ActivationFunction.Sigmoid);
 
         Matrix x = new Matrix(m, 1);
         Matrix y = new Matrix(m, 1);
 
         for (int i=0; i<m; i++)
         {
-            x.SetValue(i, 0, (double)i / (m * 2));
-            y.SetValue(i, 0, (double)i / m);
+            x.SetValue(i, 0, (double)(i+1) / (m * 5));
+            y.SetValue(i, 0, (double)(i+1) /( m * 2));
         }
 
         Matrix[] A;
 
-        for (int i=0; i<100; i++)
+        for (int i=0; i<200; i++)
         {
             Matrix h = p.ForwardPropagation(x, out A);
             p.BackPropagation(y, h, in A, 0.05);
 
-                Debug.Log(h);
+            Debug.Log("h: " + h);
 
         }
 

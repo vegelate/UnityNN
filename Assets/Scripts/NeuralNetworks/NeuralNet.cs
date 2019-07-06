@@ -63,7 +63,7 @@ namespace NN
             return ((y - h).Pow(2.0) * 0.5).Sumatory(AxisZero.horizontal);
         }
 
-        // 进行一次反向传播
+        // 单次反向传播
         public void BackPropagation(Matrix y, Matrix h, in Matrix[] A, double learningRate, double lambda = 0.0)
         {
             double m = y.X; // 训练数据条数
@@ -71,7 +71,7 @@ namespace NN
             // 每层 a 的误差值
             var delta = new Matrix[LayerCount];
 
-            delta[LayerCount - 1] = h - y;   // 最后一层
+            delta[LayerCount - 1] = y - h;   // 最后一层
 
             // 计算 delta
             for (int iLayer = W.Length - 1; iLayer > 0; iLayer--)   // delta0 是输入层，不用计算
@@ -83,7 +83,7 @@ namespace NN
                             A[iLayer]), 
                         A[iLayer] + (-1.0)).RemoveColumn();
 
-                //UnityEngine.Debug.Log("delta[" + iLayer + "] " + delta[iLayer].X + ", " + delta[iLayer].Y);
+                //UnityEngine.Debug.Log("delta[" + iLayer + "] " + delta[iLayer]);
             }
 
             // 计算 Delta
@@ -94,11 +94,13 @@ namespace NN
 
                 Delta[i] =  A[i].T * delta[i + 1];
 
-                var reg = W[i]; // 正则化
-                reg.SetColumn(0, 0.0); // 第一列置零
+                var reg = new Matrix(W[i]); // 正则化
+                reg.SetRow(0, 0.0); // 第一列置零
                 grad[i] = Delta[i] / m + reg * (lambda / m);
 
                 W[i] = W[i] + grad[i] * learningRate;
+
+                //UnityEngine.Debug.Log("grad "+i+": "+grad[i]);
             }
         }
 
