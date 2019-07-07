@@ -5,7 +5,7 @@ namespace NN
     [Serializable]
     public struct Matrix
     {
-        public static string dec = "0.00";
+        public static string dec = "0.000000";
 
         double[,] _matrix;
         public double[,] ToMatrix { get { return (double[,])_matrix.Clone(); } set { _matrix = value; } } //MATRIX IS PRETTY EXPENSIVE
@@ -31,6 +31,14 @@ namespace NN
         public Matrix(double[,] matrix)
         {
             _matrix = matrix;
+            /*
+            _matrix = new double[matrix.GetLength(0), matrix.GetLength(1)];
+            for (int x=0; x<X; x++) {
+                for (int y=0; y<Y; y++)
+                {
+                    _matrix[x, y] = matrix[x, y];
+                }
+            }*/
         }
         public Matrix(in Matrix m)
         {
@@ -287,6 +295,10 @@ namespace NN
         {
             return MatdoubleSum(-m1, m2);
         }
+        public static Matrix operator -(double m1, Matrix m2)
+        {
+            return MatdoubleSum(m1, m2*(-1.0));
+        }
 
         public static Matrix MatdoubleSum(double m1, Matrix m2)
         {
@@ -377,7 +389,7 @@ namespace NN
         }
 
         // 按位相乘
-        public static Matrix DeltaMult(Matrix m1, Matrix m2)
+        public static Matrix ElementMult(Matrix m1, Matrix m2)
         {
             if (m1.X != m2.X || m1.Y != m2.Y)
                 throw new ArgumentException("Matrix must have the same dimensions");
