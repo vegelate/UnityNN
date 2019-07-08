@@ -37,13 +37,15 @@ public class TestManager : MonoBehaviour
     // 执行测试
     IEnumerator _DoTest()
     {
-        Debug.Log("=================开始测试==================");
+        Debug.Log("<color=#00AA00ff>=================开始测试==================</color>");
         yield return null;
 
         int iPassCount = 0;
         for (int i = 0; i < m_listTester.Count; i++)
         {
             var tester = m_listTester[i];
+
+            Debug.Log("<color=#00AA00ff>[" + i + "] " + tester.strName + " Testing... </color>");
 
             bool bRst = tester.action();
 
@@ -68,7 +70,7 @@ public class TestManager : MonoBehaviour
         m_listTester.Add(new stTester("Matrix", _TestMatrix));
         m_listTester.Add(new stTester("NN Foward", _TestNNFoward));
         m_listTester.Add(new stTester("Linear Backward", _TestLinearBackward));
-        //m_listTester.Add(new stTester("NN Back", _TestNNBackPropagation));
+        m_listTester.Add(new stTester("NN Back", _TestNNBackPropagation));
     }
 
     bool _TestMatrix()
@@ -97,18 +99,29 @@ public class TestManager : MonoBehaviour
 
     bool _TestNNFoward()
     {
-        System.Random r = new System.Random(1);
 
-        NeuralNet p =
-            new NeuralNet(r, new int[] { 2, 4, 8 }, ActivationFunction.ReLU);
+        Matrix A_prev = new Matrix(
+            new double[3, 2]
+            {
+                { -0.41675785, - 0.05626683 },
+                 { -2.1361961,   1.64027081 },
+                 { -1.79343559, - 0.84174737 }
+            });
 
-        Matrix input = Matrix.Random(1, 2, r);
+        Matrix W = new Matrix(new double[1, 3] { { 0.50288142, -1.24528809, -1.05795222 } });
+        double b = -0.90900761;
 
-        Matrix[] A;
-        Matrix result = p.ForwardPropagation(input, out A);
+        Matrix Z, A;
+        NeuralNet.LinearActivationForward(A_prev, W, b, ActivationFunction.Sigmoid, out Z, out A);
+        Debug.Log("Sigmoid A:" + A);
 
-        Debug.Log("Result:" + result);
+        NeuralNet.LinearActivationForward(A_prev, W, b, ActivationFunction.ReLU, out Z, out A);
+        Debug.Log("Relu A:" + A);
 
+        /*
+        With sigmoid: A = [[0.96890023  0.11013289]]
+        With ReLU: A = [[3.43896131  0.        ]]
+        */
         return true;
     }
 
@@ -151,43 +164,67 @@ public class TestManager : MonoBehaviour
         return true;
     }
 
-    bool _TestActivationBackward()
-    {
 
+    bool _TestLinearActivationBackward()
+    {
+        Matrix dA = new Matrix(new double[1, 2]
+        {
+            { -0.41675785, -0.05626683 }
+        });
+
+        Matrix A = new Matrix(new double[3, 2]
+        {
+            { -2.1361961, 1.64027081 },
+            { -1.79343559, -0.84174737 },
+            { 0.50288142, -1.24528809 }
+         });
+
+        Matrix W = new Matrix(new double[1, 3]
+        {
+            {-1.05795222, -0.90900761,  0.55145404}
+        });
+
+        double b = 2.29220801;
+
+        Matrix Z = new Matrix(new double[1, 2]
+        {
+            {0.04153939, -1.11792545}
+        });
+
+       // NeuralNet.LinearActivationBackward(dA, A, W, b, )
+        return true;
     }
 
     // 反向传播
     bool _TestNNBackPropagation()
     {
         System.Random r = new System.Random(1);
-        int m = 1; 
+        int m = 1;
         NeuralNet p =
             new NeuralNet(r, new int[] { 1, 2, 1 }, ActivationFunction.Sigmoid);
 
-        Matrix x = new Matrix(m, 1);
-        Matrix y = new Matrix(m, 1);
+        Matrix x = new Matrix(1, m);
+        Matrix y = new Matrix(1, m);
 
-
-        
-        for (int i=0; i<m; i++)
+        for (int i = 0; i < m; i++)
         {
-            double x_i = (double)(i+1);
-            x.SetValue(i, 0, x_i / 4.0);
-            y.SetValue(i, 0, x_i / 2.0);
+            double x_i = (double)(i + 1);
+            x.SetValue(0, i, x_i / 6.0);
+            y.SetValue(0, i, x_i / 2.0);
         }
-        
+
 
         Debug.Log("x:" + x);
         Debug.Log("y:" + y);
 
         Matrix[] A;
-
+        Matrix[] Z;
         Matrix h;
-        for (int i=0; i<100; i++)
+        for (int i = 0; i < 300; i++)
         {
-            Debug.Log("=============="+i+"==============");
-            h = p.ForwardPropagation(x, out A);
-            p.BackPropagation(y, h, in A, 0.1);
+            Debug.Log("==============" + i + "==============");
+            h = p.ForwardPropagation(x, out A, out Z);
+            p.BackPropagation(y, h, in Z, in A, 0.1);
 
             Debug.Log("h: " + h);
 
@@ -202,6 +239,6 @@ public class TestManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }
