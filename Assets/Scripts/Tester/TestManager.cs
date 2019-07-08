@@ -70,6 +70,7 @@ public class TestManager : MonoBehaviour
         m_listTester.Add(new stTester("Matrix", _TestMatrix));
         m_listTester.Add(new stTester("NN Foward", _TestNNFoward));
         m_listTester.Add(new stTester("Linear Backward", _TestLinearBackward));
+        m_listTester.Add(new stTester("Linear Activation Backward", _TestLinearActivationBackward));
         m_listTester.Add(new stTester("NN Back", _TestNNBackPropagation));
     }
 
@@ -109,7 +110,7 @@ public class TestManager : MonoBehaviour
             });
 
         Matrix W = new Matrix(new double[1, 3] { { 0.50288142, -1.24528809, -1.05795222 } });
-        double b = -0.90900761;
+        Matrix b = new Matrix(new double[1, 1] { { -0.90900761 } });
 
         Matrix Z, A;
         NeuralNet.LinearActivationForward(A_prev, W, b, ActivationFunction.Sigmoid, out Z, out A);
@@ -136,16 +137,17 @@ public class TestManager : MonoBehaviour
         double[,] _W = new double[1, 3]
             {{0.3190391, -0.24937038, 1.46210794 }};
 
-        double b = -2.06014071;
+        double[,] _b = new double[1, 1] { { -2.06014071 } };
 
         double[,] _dZ = new double[1, 2] { { 1.62434536, -0.61175641 } };
 
         Matrix A_prev = new Matrix(_A_prev);
         Matrix W = new Matrix(_W);
+        Matrix b = new Matrix(_b);
         Matrix dZ = new Matrix(_dZ);
 
         Matrix dW, dA_prev;
-        double db;
+        Matrix db;
 
         NeuralNet.LinearBackward(dZ, W, b, A_prev, out dW, out db, out dA_prev);
 
@@ -172,7 +174,7 @@ public class TestManager : MonoBehaviour
             { -0.41675785, -0.05626683 }
         });
 
-        Matrix A = new Matrix(new double[3, 2]
+        Matrix A_prev = new Matrix(new double[3, 2]
         {
             { -2.1361961, 1.64027081 },
             { -1.79343559, -0.84174737 },
@@ -184,14 +186,42 @@ public class TestManager : MonoBehaviour
             {-1.05795222, -0.90900761,  0.55145404}
         });
 
-        double b = 2.29220801;
+        Matrix b = new Matrix(new double[,] { { 2.29220801 } });
 
         Matrix Z = new Matrix(new double[1, 2]
         {
             {0.04153939, -1.11792545}
         });
 
-       // NeuralNet.LinearActivationBackward(dA, A, W, b, )
+        Matrix dW, db, dA_prev;
+        NeuralNet.LinearActivationBackward(dA, Z, W, b, A_prev, ActivationFunction.Sigmoid, out dW, out db, out dA_prev);
+
+        print("############# Sigmoid ############");
+        print("dW:" + dW);
+        print("db:" + db);
+        print("dA_prev:" + dA_prev);
+
+        print("############# Relu #############");
+        NeuralNet.LinearActivationBackward(dA, Z, W, b, A_prev, ActivationFunction.ReLU, out dW, out db, out dA_prev);
+        print("dW:" + dW);
+        print("db:" + db);
+        print("dA_prev:" + dA_prev);
+
+        /*
+        sigmoid:
+        dA_prev = [[0.11017994  0.01105339]
+                [0.09466817  0.00949723]
+                [-0.05743092 - 0.00576154]]
+        dW = [[0.10266786  0.09778551 - 0.01968084]]
+        db = [[-0.05729622]]
+
+        relu:
+                dA_prev = [[0.44090989  0.        ]
+                 [0.37883606  0.        ]
+                 [-0.2298228   0.        ]]
+        dW = [[0.44513824  0.37371418 - 0.10478989]]
+        db = [[-0.20837892]]
+*/
         return true;
     }
 
@@ -199,7 +229,7 @@ public class TestManager : MonoBehaviour
     bool _TestNNBackPropagation()
     {
         System.Random r = new System.Random(1);
-        int m = 1;
+        int m = 3;
         NeuralNet p =
             new NeuralNet(r, new int[] { 1, 2, 1 }, ActivationFunction.Sigmoid);
 
@@ -220,11 +250,11 @@ public class TestManager : MonoBehaviour
         Matrix[] A;
         Matrix[] Z;
         Matrix h;
-        for (int i = 0; i < 300; i++)
+        for (int i = 0; i < 100; i++)
         {
             Debug.Log("==============" + i + "==============");
             h = p.ForwardPropagation(x, out A, out Z);
-            p.BackPropagation(y, h, in Z, in A, 0.1);
+            p.BackPropagation(y, h, in Z, in A, 0.05);
 
             Debug.Log("h: " + h);
 

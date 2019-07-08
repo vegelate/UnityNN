@@ -315,6 +315,20 @@ namespace NN
         }
         public static Matrix MatSum(Matrix m1, Matrix m2, bool neg = false)
         {
+            // 广播
+            if (m1.X == m2.X && m2.Y == 1)
+            {
+                double[,] m = new double[m1.X, m1.Y];
+                for (int x=0; x<m1.X; x++)
+                {
+                    for (int y=0; y<m1.Y; y++)
+                    {
+                        m[x, y] = m1.GetValue(x, y) + m2.GetValue(x, 0);
+                    }
+                }
+                return new Matrix(m);
+            }
+
             if (m1.X != m2.X || m1.Y != m2.Y)
                 throw new ArgumentException("Matrix must have the same dimensions");
 
@@ -350,6 +364,34 @@ namespace NN
         {
             return MatdoubleMult(m2, 1 / m1);
         }
+
+        public static Matrix operator /(Matrix m1, Matrix m2)
+        {
+            if (m1.X != m2.X && m1.Y != m2.Y)
+                throw new ArgumentException("Matrix must have the same dimensions");
+
+            Matrix m = new Matrix(m1.X, m1.Y);
+
+            for (int x=0; x<m1.X; x++)
+            {
+                for (int y=0; y<m1.Y; y++)
+                {
+                    double v1 = m1.GetValue(x, y);
+                    double v2 = m2.GetValue(x, y);
+                    if (v2 != 0.0)
+                    {
+                        m.SetValue(x, y, v1 / v2);
+                    }
+                    else
+                    {
+                        m.SetValue(x, y, 0);
+                    }
+                }
+            }
+
+            return m;
+        }
+
         public static Matrix MatdoubleMult(Matrix m2, double m1)
         {
             double[,] a = m2;

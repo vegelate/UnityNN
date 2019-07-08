@@ -11,7 +11,7 @@ namespace NN
         ActivationFunction activationFunction;
         public int LayerCount { get { return W.Length; } }
         public Matrix[] W;  // 所有层的 Weights
-        public double[] b;  // 所有层的 bias
+        public Matrix[] b;  // 所有层的 bias
         public Genoma GetGenoma { get { return new Genoma(W); } }
 
         // ctor
@@ -21,6 +21,7 @@ namespace NN
             this.activationFunction = activationFunction;
 
             W = new Matrix[NeuronCount.Length]; // W[i] 用于计算第 i 层的参数。 0 是输入层， W[0] 没有意义
+            b = new Matrix[NeuronCount.Length];
 
             for (int i = 1; i < W.Length; i++)
             {
@@ -31,9 +32,11 @@ namespace NN
 
                 W[i] = Matrix.Random(iNumRow, iNumCol, r) * 2 - 1;
                 UnityEngine.Debug.Log("W[" + i + "]:" + W[i]);
+
+                b[i] = new Matrix(iNumRow, 1);
             }
 
-            b = new double[NeuronCount.Length];
+
         }
 
         // 前向传播
@@ -52,6 +55,7 @@ namespace NN
 
                 UnityEngine.Debug.Log("A[" + (i-1) + "]:" + A[i-1]);
                 UnityEngine.Debug.Log("W[" + (i) + "]:" + W[i]);
+                UnityEngine.Debug.Log("b[" + (i) + "]:" + b[i]);
                 UnityEngine.Debug.Log("Z[" + i + "]:" + Z[i]);
                 UnityEngine.Debug.Log("A[" + i + "]:" + A[i]);
             }
@@ -73,13 +77,14 @@ namespace NN
 
             Matrix[] dA = new Matrix[LayerCount];
             Matrix[] dW = new Matrix[LayerCount];
-            double[] db = new double[LayerCount];
+            Matrix[] db = new Matrix[LayerCount];
 
+            //dA[LayerCount - 1] = y / h - (1.0 - y) / (1.0 - h);
             dA[LayerCount - 1] = y - h;
             for (int iLayer = LayerCount-1; iLayer > 0; iLayer--)   // delta0 是输入层，不用计算
             {
                 LinearActivationBackward(
-                    dA[iLayer], Z[iLayer], W[iLayer], b[iLayer], A[iLayer - 1], 
+                    dA[iLayer], Z[iLayer], W[iLayer], b[iLayer], A[iLayer - 1], this.activationFunction,
                     out dW[iLayer], out db[iLayer], out dA[iLayer-1]);
               
             }
@@ -89,6 +94,9 @@ namespace NN
             {
                 W[i] = W[i] + dW[i] * learningRate;
                 b[i] = b[i] + db[i] * learningRate;
+
+                UnityEngine.Debug.Log("dW[" + i + "] = " + dW[i]);
+                UnityEngine.Debug.Log("db[" + i + "] = " + db[i]);
             }
 
             { 
@@ -149,34 +157,41 @@ namespace NN
             }
         }
         
-        public static void LinearForward(Matrix A_prev, Matrix W, double b, out Matrix Z)
+        public static void LinearForward(Matrix A_prev, Matrix W, Matrix b, out Matrix Z)
         {
             Z = W * A_prev + b;
         }
 
-        public static void LinearActivationForward(Matrix A_prev, Matrix W, double b, ActivationFunction activationFunc, out Matrix Z, out Matrix A)
+        public static void LinearActivationForward(Matrix A_prev, Matrix W, Matrix b, ActivationFunction activationFunc, out Matrix Z, out Matrix A)
         {
             LinearForward(A_prev, W, b, out Z);
             A = Activation(Z, activationFunc);
         }
 
-        public static void LinearActivationBackward(Matrix dA, Matrix Z, Matrix W, double b, Matrix A_prev, out Matrix dW, out double db, out Matrix dA_prev)
+        public static void LinearActivationBackward(
+            Matrix dA, Matrix Z, Matrix W, Matrix b, Matrix A_prev, ActivationFunction af, out Matrix dW, out Matrix db, out Matrix dA_prev)
         {
             Matrix dZ;
-            SigmoidBackward(dA, Z, out dZ);
+            if (af == ActivationFunction.Sigmoid)
+                SigmoidBackward(dA, Z, out dZ);
+            else if (af == ActivationFunction.ReLU)
+                ReluBackward(dA, Z, out dZ);
+            else
+                dZ = Z;
+
             LinearBackward(dZ, W, b, A_prev, out dW, out db, out dA_prev);
 
         }
 
         // z = w*A_prev+b 的反向传播.
         // 已知dz, 求 dw, db, dA_prev 
-        public static void LinearBackward(Matrix dZ, Matrix W, double b, Matrix A_prev, out Matrix dW, out double db, out Matrix dA_prev)
+        public static void LinearBackward(Matrix dZ, Matrix W, Matrix b, Matrix A_prev, out Matrix dW, out Matrix db, out Matrix dA_prev)
         {
             double m = A_prev.Y;
             double inv_m = 1.0 / m;
 
             dW = dZ * A_prev.T * inv_m;
-            db = dZ.Sumatory().GetValue(0, 0) * inv_m;
+            db = dZ.Sumatory(AxisZero.horizontal) * inv_m;
 
             UnityEngine.Debug.Log("W.T:" + W.T);
             UnityEngine.Debug.Log("dZ" + dZ);
@@ -188,6 +203,17 @@ namespace NN
         {
             Matrix s = Sigmoid(Z);
             dZ = Matrix.ElementMult(dA, Matrix.ElementMult(s, 1 - s));
+        }
+
+        public static void ReluBackward(Matrix dA, Matrix Z, out Matrix dZ)
+        {
+            var _dZ = new Matrix(Z.X, Z.Y);
+            Matrix.MatrixLoop((x, y) =>
+            {
+                _dZ.SetValue(x, y, Math.Max(0,Z.GetValue(x, y)));
+            }, Z.X, Z.Y);
+
+            dZ = _dZ;
         }
 
         public static Matrix Activation(Matrix m, ActivationFunction activationFunction)
