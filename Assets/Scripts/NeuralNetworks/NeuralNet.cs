@@ -2,23 +2,22 @@
 
 namespace NN
 {
-    public enum ActivationFunction { ReLU, Sigmoid, Linear, Tanh }
+    public enum ActivationFunction { None, ReLU, Sigmoid, Linear, Tanh }
 
     // 感知器
     [Serializable]
     public struct NeuralNet
     {
-        ActivationFunction activationFunction;
+        ActivationFunction[] activationFunctions;
         public int LayerCount { get { return W.Length; } }
-        public Matrix[] W;  // 所有层的 Weights
-        public Matrix[] b;  // 所有层的 bias
-        public Genoma GetGenoma { get { return new Genoma(W); } }
+        public Matrix[] W;  //  Weights
+        public Matrix[] b;  //  Bias
 
         // ctor
         // NeuronCount - 每一层维度
-        public NeuralNet(Random r, int[] NeuronCount, ActivationFunction activationFunction)
+        public NeuralNet(Random r, int[] NeuronCount, ActivationFunction[] activations)
         {
-            this.activationFunction = activationFunction;
+            this.activationFunctions = activations;
 
             W = new Matrix[NeuronCount.Length]; // W[i] 用于计算第 i 层的参数。 0 是输入层， W[0] 没有意义
             b = new Matrix[NeuronCount.Length];
@@ -28,9 +27,7 @@ namespace NN
                 int iNumRow = NeuronCount[i];
                 int iNumCol = NeuronCount[i-1];
 
-                // UnityEngine.Debug.Log("[" + i + "] " + iNumRow + " x " + iNumCol);
-
-                if (activationFunction == ActivationFunction.ReLU)
+                if (activationFunctions[i] == ActivationFunction.ReLU)
                 {
                     W[i] = Matrix.Random(iNumRow, iNumCol, r);
                 }
@@ -59,14 +56,8 @@ namespace NN
 
             for (int i = 1; i < LayerCount; i++)
             {
+                LinearActivationForward(A[i-1], W[i], b[i], this.activationFunctions[i], out Z[i], out A[i]);
 
-                LinearActivationForward(A[i-1], W[i], b[i], this.activationFunction, out Z[i], out A[i]);
-
-                UnityEngine.Debug.Log("A[" + (i-1) + "]:" + A[i-1]);
-                UnityEngine.Debug.Log("W[" + (i) + "]:" + W[i]);
-                UnityEngine.Debug.Log("b[" + (i) + "]:" + b[i]);
-                UnityEngine.Debug.Log("Z[" + i + "]:" + Z[i]);
-                UnityEngine.Debug.Log("A[" + i + "]:" + A[i]);
             }
             var a = A[A.Length - 1];
             return a;
@@ -88,20 +79,14 @@ namespace NN
             Matrix[] dW = new Matrix[LayerCount];
             Matrix[] db = new Matrix[LayerCount];
 
-            //dA[LayerCount - 1] = y / h - (1.0 - y) / (1.0 - h);
             dA[LayerCount - 1] = y - h;
             for (int iLayer = LayerCount-1; iLayer > 0; iLayer--)   // delta0 是输入层，不用计算
             {
                 LinearActivationBackward(
-                    dA[iLayer], Z[iLayer], W[iLayer], b[iLayer], A[iLayer - 1], this.activationFunction,
+                    dA[iLayer], Z[iLayer], W[iLayer], b[iLayer], A[iLayer - 1], this.activationFunctions[iLayer],
                     out dW[iLayer], out db[iLayer], out dA[iLayer-1]);
             }
 
-            for (int i=0; i<dA.Length; i++)
-            {
-                UnityEngine.Debug.Log("A[" + i + "] = " + A[i]);
-                UnityEngine.Debug.Log("dA[" + i + "] = " + dA[i]);
-            }
 
             // 更新 W, b
             for (int i=1; i<W.Length; i++)
@@ -109,65 +94,6 @@ namespace NN
                 W[i] = W[i] + dW[i] * learningRate;
                 b[i] = b[i] + db[i] * learningRate;
 
-                UnityEngine.Debug.Log("dW[" + i + "] = " + dW[i]);
-                UnityEngine.Debug.Log("db[" + i + "] = " + db[i]);
-            }
-
-            { 
-            /*
-            double m = y.X; // 训练数据条数
-
-            // 每层 a 的误差值
-            var delta = new Matrix[LayerCount]; // dZ
-
-            delta[LayerCount - 1] = y - h;   // 最后一层
-
-            // 计算 delta
-            for (int iLayer = W.Length - 1; iLayer > 0; iLayer--)   // delta0 是输入层，不用计算
-            {
-
-                Matrix d =  Matrix.ElementMult(
-                         delta[iLayer + 1] * W[iLayer].T,
-                         Matrix.ElementMult(A[iLayer], 1.0 - A[iLayer] ));//.RemoveColumn();
-
-                delta[iLayer] = d.Slice(0, 1, d.X, d.Y);
-
-                //UnityEngine.Debug.Log("delta[" + iLayer + "] " + delta[iLayer]);
-            }
-
-            for (int i = 1; i < delta.Length; i++)
-            {
-                UnityEngine.Debug.Log("delta[" + i + "]:" + delta[i]);
-            }
-
-
-            // 计算 Delta
-            var Delta = new Matrix[W.Length];
-            var grad = new Matrix[W.Length];    // 梯度
-
-            for (int i = 0; i < W.Length; i++)
-            {
-                //Delta[i] = (delta[i + 1].T * A[i]).T;
-                Delta[i] = A[i].T * delta[i+1];
-
-                UnityEngine.Debug.Log("Delta[" + i + "]:" + Delta[i]);
-
-                var reg = new Matrix(W[i]); // 正则化
-                reg.SetRow(0, 0.0); // 第一列置零
-                grad[i] = Delta[i] / m + reg * (lambda / m);
-
-                UnityEngine.Debug.Log("grad " + i + ": " + grad[i]);
-            }
-
-            // 更新 W
-            for (int i = 0; i < W.Length; i++)
-            {
-                UnityEngine.Debug.Log("before W " + i + ": " + W[i]);
-                W[i] = W[i] + grad[i] * learningRate;
-                UnityEngine.Debug.Log("after W " + i + ": " + W[i]);
-            }
-
-            */
             }
         }
         
@@ -206,9 +132,6 @@ namespace NN
 
             dW = dZ * A_prev.T * inv_m;
             db = dZ.Sumatory(AxisZero.horizontal) * inv_m;
-
-            UnityEngine.Debug.Log("W.T:" + W.T);
-            UnityEngine.Debug.Log("dZ" + dZ);
 
             dA_prev = W.T * dZ;
         }
@@ -285,57 +208,6 @@ namespace NN
 
             }, m.X, m.Y);
             return output;
-        }
-    }
-
-    // 基因组
-    [Serializable]
-    public struct Genoma
-    {
-        public Matrix[] W;
-        public Genoma(Matrix[] W)
-        {
-            this.W = W;
-        }
-        public static Genoma Cross(Random r, Genoma parent1, Genoma parent2)
-        {
-            Matrix[] SonW = new Matrix[parent1.W.Length];
-
-            for (int layer = 0; layer < parent1.W.Length; layer++)
-            {
-                double[,] w = new double[parent1.W[layer].X, parent1.W[layer].Y];
-                Matrix.MatrixLoop((i, j) =>
-                {
-                    if (r.NextDouble() > 0.5)
-                    {
-                        w[i, j] = parent1.W[layer].GetValue(i, j);
-                    }
-                    else
-                    {
-                        w[i, j] = parent2.W[layer].GetValue(i, j);
-                    }
-                }, parent1.W[layer].X, parent1.W[layer].Y);
-                SonW[layer] = w;
-            }
-
-            return new Genoma(SonW);
-        }
-        public static Genoma Mutate(Random r, Genoma gen,
-            float mutationRate, float maxPerturbation)
-        {
-            for (int layer = 0; layer < gen.W.Length; layer++)
-            {
-                double[,] m = gen.W[layer];
-                Matrix.MatrixLoop((i, j) =>
-                {
-                    if (r.NextDouble() < mutationRate)
-                    {
-                        m[i, j] += (r.NextDouble() * 2f - 1f) * maxPerturbation;
-                    }
-                }, gen.W[layer].X, gen.W[layer].Y);
-                gen.W[layer] = m;
-            }
-            return gen;
         }
     }
 }

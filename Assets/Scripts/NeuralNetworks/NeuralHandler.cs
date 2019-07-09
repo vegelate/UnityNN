@@ -15,7 +15,6 @@ namespace NN
     [System.Serializable]
     public struct Individual
     {
-        public Genoma gen;
         public float fitness;
     }
     public class Handler

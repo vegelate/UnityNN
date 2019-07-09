@@ -37,7 +37,7 @@ public class TestManager : MonoBehaviour
     // 执行测试
     IEnumerator _DoTest()
     {
-        Debug.Log("<color=#00AA00ff>=================开始测试==================</color>");
+        Debug.Log("<color=#00AA00ff>=================Begin Test==================</color>");
         yield return null;
 
         int iPassCount = 0;
@@ -61,7 +61,7 @@ public class TestManager : MonoBehaviour
             yield return null;
         }
 
-        Debug.Log("<color=white>测试完成，通过率 " + iPassCount + "/" + m_listTester.Count + "</color>");
+        Debug.Log("<color=white> Finished " + iPassCount + "/" + m_listTester.Count + "</color>");
     }
 
     // 
@@ -240,7 +240,8 @@ public class TestManager : MonoBehaviour
         {
             int m = 5;
             nn =
-                new NeuralNet(r, new int[] { 1, 10, 1 }, ActivationFunction.ReLU);
+                new NeuralNet(r, new int[] { 1, 10, 1 }, 
+                    new ActivationFunction[] { ActivationFunction.None, ActivationFunction.ReLU, ActivationFunction.ReLU });
 
             x = new Matrix(1, m);
             y = new Matrix(1, m);
@@ -255,18 +256,27 @@ public class TestManager : MonoBehaviour
         else
         // test sigmoid
         {
-            int m = 2;
-            nn =
-                new NeuralNet(r, new int[] { 1, 3, 1 }, ActivationFunction.Sigmoid);
+            int m = 10;
+            nn = new NeuralNet(r, new int[] { 1, 3, 1 }, 
+                new ActivationFunction[] { ActivationFunction.None, ActivationFunction.ReLU, ActivationFunction.Sigmoid });
 
+            // Fill testing data
             x = new Matrix(1, m);
             y = new Matrix(1, m);
 
-            x.SetValue(0, 0, -1.0);
-            y.SetValue(0, 0, 0.0);
-
-            x.SetValue(0, 1, 1.0);
-            y.SetValue(0, 1, 1.0);
+            for (int i = 0; i < m; i++)
+            {
+                if (i > 5)
+                {
+                    x.SetValue(0, i, i*2);
+                    y.SetValue(0, i, 0.0);
+                }
+                else
+                {
+                    x.SetValue(0, i, i*2);
+                    y.SetValue(0, i, 1.0);
+                }
+            }
         }
 
 
@@ -276,16 +286,18 @@ public class TestManager : MonoBehaviour
         Matrix[] A;
         Matrix[] Z;
         Matrix h;
-        for (int i = 0; i < 200; i++)
+        for (int i = 0; i < 501; i++)
         {
-            Debug.Log("==============" + i + "==============");
             h = nn.ForwardPropagation(x, out A, out Z);
             nn.BackPropagation(y, h, in Z, in A, 0.2);
-
-            Debug.Log("h: " + h);
-
             var cost = NeuralNet.Cost(y, h);
-            Debug.Log("cost:" + cost);
+
+            if (i % 100 == 0)
+            {
+                Debug.Log("==============" + i + "==============");
+                Debug.Log("h: " + h);
+                Debug.Log("cost:" + cost);
+            }
         }
 
 
