@@ -30,7 +30,15 @@ namespace NN
 
                 // UnityEngine.Debug.Log("[" + i + "] " + iNumRow + " x " + iNumCol);
 
-                W[i] = Matrix.Random(iNumRow, iNumCol, r) * 2 - 1;
+                if (activationFunction == ActivationFunction.ReLU)
+                {
+                    W[i] = Matrix.Random(iNumRow, iNumCol, r);
+                }
+                else
+                {
+                    W[i] = Matrix.Random(iNumRow, iNumCol, r) * 2 - 1;
+                }
+
                 UnityEngine.Debug.Log("W[" + i + "]:" + W[i]);
 
                 b[i] = new Matrix(iNumRow, 1);
@@ -46,8 +54,8 @@ namespace NN
             Z = new Matrix[LayerCount];
             A = new Matrix[LayerCount];
 
-            Z[0] = InputValue; // add bias
-            A[0] = Z[0];
+            Z[0] = new Matrix(InputValue); 
+            A[0] = new Matrix(InputValue);
 
             for (int i = 1; i < LayerCount; i++)
             {

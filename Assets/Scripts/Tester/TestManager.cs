@@ -231,18 +231,42 @@ public class TestManager : MonoBehaviour
     bool _TestNNBackPropagation()
     {
         System.Random r = new System.Random(1);
-        int m = 3;
-        NeuralNet p =
-            new NeuralNet(r, new int[] { 1, 1, 1 }, ActivationFunction.ReLU);
 
-        Matrix x = new Matrix(1, m);
-        Matrix y = new Matrix(1, m);
+        NeuralNet nn;
+        Matrix x, y;    // training data
 
-        for (int i = 0; i < m; i++)
+        // test relu
+        if (false)
         {
-            double x_i = (double)(i + 1);
-            x.SetValue(0, i, x_i / 2.0);
-            y.SetValue(0, i, x_i / 1.0);
+            int m = 5;
+            nn =
+                new NeuralNet(r, new int[] { 1, 10, 1 }, ActivationFunction.ReLU);
+
+            x = new Matrix(1, m);
+            y = new Matrix(1, m);
+
+            for (int i = 0; i < m; i++)
+            {
+                double x_i = (double)(i + 1);
+                x.SetValue(0, i, x_i / 6.0);
+                y.SetValue(0, i, x_i / 3.0);
+            }
+        }
+        else
+        // test sigmoid
+        {
+            int m = 2;
+            nn =
+                new NeuralNet(r, new int[] { 1, 3, 1 }, ActivationFunction.Sigmoid);
+
+            x = new Matrix(1, m);
+            y = new Matrix(1, m);
+
+            x.SetValue(0, 0, -1.0);
+            y.SetValue(0, 0, 0.0);
+
+            x.SetValue(0, 1, 1.0);
+            y.SetValue(0, 1, 1.0);
         }
 
 
@@ -255,8 +279,8 @@ public class TestManager : MonoBehaviour
         for (int i = 0; i < 200; i++)
         {
             Debug.Log("==============" + i + "==============");
-            h = p.ForwardPropagation(x, out A, out Z);
-            p.BackPropagation(y, h, in Z, in A, 0.1);
+            h = nn.ForwardPropagation(x, out A, out Z);
+            nn.BackPropagation(y, h, in Z, in A, 0.2);
 
             Debug.Log("h: " + h);
 
