@@ -186,21 +186,23 @@ public class TestManager : MonoBehaviour
             {-1.05795222, -0.90900761,  0.55145404}
         });
 
-        Matrix b = new Matrix(new double[,] { { 2.29220801 } });
+        Matrix b = new Matrix(new double[1,1] { { 2.29220801 } });
 
         Matrix Z = new Matrix(new double[1, 2]
         {
             {0.04153939, -1.11792545}
         });
 
+
         Matrix dW, db, dA_prev;
+        
         NeuralNet.LinearActivationBackward(dA, Z, W, b, A_prev, ActivationFunction.Sigmoid, out dW, out db, out dA_prev);
 
         print("############# Sigmoid ############");
         print("dW:" + dW);
         print("db:" + db);
         print("dA_prev:" + dA_prev);
-
+        
         print("############# Relu #############");
         NeuralNet.LinearActivationBackward(dA, Z, W, b, A_prev, ActivationFunction.ReLU, out dW, out db, out dA_prev);
         print("dW:" + dW);
@@ -231,7 +233,7 @@ public class TestManager : MonoBehaviour
         System.Random r = new System.Random(1);
         int m = 3;
         NeuralNet p =
-            new NeuralNet(r, new int[] { 1, 2, 1 }, ActivationFunction.Sigmoid);
+            new NeuralNet(r, new int[] { 1, 1, 1 }, ActivationFunction.ReLU);
 
         Matrix x = new Matrix(1, m);
         Matrix y = new Matrix(1, m);
@@ -239,8 +241,8 @@ public class TestManager : MonoBehaviour
         for (int i = 0; i < m; i++)
         {
             double x_i = (double)(i + 1);
-            x.SetValue(0, i, x_i / 6.0);
-            y.SetValue(0, i, x_i / 2.0);
+            x.SetValue(0, i, x_i / 2.0);
+            y.SetValue(0, i, x_i / 1.0);
         }
 
 
@@ -250,11 +252,11 @@ public class TestManager : MonoBehaviour
         Matrix[] A;
         Matrix[] Z;
         Matrix h;
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 200; i++)
         {
             Debug.Log("==============" + i + "==============");
             h = p.ForwardPropagation(x, out A, out Z);
-            p.BackPropagation(y, h, in Z, in A, 0.05);
+            p.BackPropagation(y, h, in Z, in A, 0.1);
 
             Debug.Log("h: " + h);
 

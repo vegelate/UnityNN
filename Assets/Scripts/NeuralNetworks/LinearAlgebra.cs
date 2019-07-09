@@ -323,7 +323,10 @@ namespace NN
                 {
                     for (int y=0; y<m1.Y; y++)
                     {
-                        m[x, y] = m1.GetValue(x, y) + m2.GetValue(x, 0);
+                        if (!neg)
+                            m[x, y] = m1.GetValue(x, y) + m2.GetValue(x, 0);
+                        else
+                            m[x, y] = m1.GetValue(x, y) - m2.GetValue(x, 0);
                     }
                 }
                 return new Matrix(m);

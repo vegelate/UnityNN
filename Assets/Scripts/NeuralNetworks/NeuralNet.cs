@@ -42,7 +42,7 @@ namespace NN
         // 前向传播
         public Matrix ForwardPropagation(Matrix InputValue, out Matrix[] A, out Matrix[] Z)
         {
-            int m = InputValue.X;    // num of examples, rows
+            int m = InputValue.Y;    // num of examples, rows
             Z = new Matrix[LayerCount];
             A = new Matrix[LayerCount];
 
@@ -51,7 +51,8 @@ namespace NN
 
             for (int i = 1; i < LayerCount; i++)
             {
-                LinearActivationForward(A[i-1], W[i], b[i], ActivationFunction.Sigmoid, out Z[i], out A[i]);
+
+                LinearActivationForward(A[i-1], W[i], b[i], this.activationFunction, out Z[i], out A[i]);
 
                 UnityEngine.Debug.Log("A[" + (i-1) + "]:" + A[i-1]);
                 UnityEngine.Debug.Log("W[" + (i) + "]:" + W[i]);
@@ -86,7 +87,12 @@ namespace NN
                 LinearActivationBackward(
                     dA[iLayer], Z[iLayer], W[iLayer], b[iLayer], A[iLayer - 1], this.activationFunction,
                     out dW[iLayer], out db[iLayer], out dA[iLayer-1]);
-              
+            }
+
+            for (int i=0; i<dA.Length; i++)
+            {
+                UnityEngine.Debug.Log("A[" + i + "] = " + A[i]);
+                UnityEngine.Debug.Log("dA[" + i + "] = " + dA[i]);
             }
 
             // 更新 W, b
@@ -207,10 +213,12 @@ namespace NN
 
         public static void ReluBackward(Matrix dA, Matrix Z, out Matrix dZ)
         {
-            var _dZ = new Matrix(Z.X, Z.Y);
+            var _dZ = new double[Z.X, Z.Y];
+            double[,] _Z = Z;
+            double[,] _dA = dA;
             Matrix.MatrixLoop((x, y) =>
             {
-                _dZ.SetValue(x, y, Math.Max(0,Z.GetValue(x, y)));
+                _dZ[x, y] = _Z[x, y] < 0 ? 0 : _dA[x, y];
             }, Z.X, Z.Y);
 
             dZ = _dZ;
