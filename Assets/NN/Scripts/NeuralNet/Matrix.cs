@@ -40,7 +40,7 @@ namespace NN
                 }
             }*/
         }
-        public Matrix(in Matrix m)
+        public Matrix(Matrix m)
         {
             _matrix = new double[m.X, m.Y];
             for (int y=0; y<m.Y; y++)

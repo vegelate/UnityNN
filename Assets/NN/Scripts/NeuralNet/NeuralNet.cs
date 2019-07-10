@@ -70,7 +70,7 @@ namespace NN
         }
 
         // 单次反向传播
-        public void BackPropagation(Matrix y, Matrix h, in Matrix[] Z, in Matrix[] A, double learningRate, double lambda = 0.0)
+        public void BackPropagation(Matrix y, Matrix h, ref Matrix[] Z, ref Matrix[] A, double learningRate, double lambda = 0.0)
         {
             double m = y.Y; // 训练数据条数
             double inv_m = 1.0 / m;

@@ -6,7 +6,7 @@ namespace NN
 {
     public static class Helper
     {
-        public static void PrintDim(string name, in Matrix m)
+        public static void PrintDim(string name, Matrix m)
         {
             Debug.Log(name + "X:" + m.X + ", Y:" + m.Y);
         }

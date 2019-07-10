@@ -289,7 +289,7 @@ public class TestManager : MonoBehaviour
         for (int i = 0; i < 501; i++)
         {
             h = nn.ForwardPropagation(x, out A, out Z);
-            nn.BackPropagation(y, h, in Z, in A, 0.2);
+            nn.BackPropagation(y, h, ref Z, ref A, 0.2);
             var cost = NeuralNet.Cost(y, h);
 
             if (i % 100 == 0)
